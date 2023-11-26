@@ -65,8 +65,7 @@ async function run() {
     const userCollection = database.collection('userCollection');
     const publisherCollection = database.collection('publisherCollection');
 
-
-    //auth related api
+    
 
     // app.post('/jwt', async(req,res)=>{
     //   const user = req.body;
