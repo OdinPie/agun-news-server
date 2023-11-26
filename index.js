@@ -121,13 +121,13 @@ app.get('/users', async(req,res)=>{
     res.send(cursor);
 })
 
-app.post('/addpublisher', async(req, res)=>{
+app.post('/publishers', async(req, res)=>{
     const publisher = req.body;
     const result = await publisherCollection.insertOne(publisher);
     res.send(result)
 })
 
-app.get('/addpublisher', async(req,res)=>{
+app.get('/publishers', async(req,res)=>{
     const cursor = await publisherCollection.find().toArray();
     res.send(cursor)
 })
