@@ -109,9 +109,10 @@ async function run() {
       const updatedDoc = req.body;
       option = { upsert: true }
       const updateDoc ={
+        
         $set: {
           status: updatedDoc.status,
-          declineReason: updatedDoc?.declineReason
+          declineReason: updatedDoc?.declineReason //if declined
         }
       }
 
