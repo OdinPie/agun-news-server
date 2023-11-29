@@ -66,7 +66,6 @@ async function run() {
     const publisherCollection = database.collection('publisherCollection');
 
     
-
     // app.post('/jwt', async(req,res)=>{
     //   const user = req.body;
     //   const token = jwt.sign({data: user},`${process.env.JWT_SECRET}`,{expiresIn: '1h'});
@@ -109,7 +108,7 @@ async function run() {
       res.send(result);
       })
 
-    app.get('/allarticles/articledetail/:id', async(req,res)=>{
+    app.get('/articles/:id', async(req,res)=>{
       const id = req.params;
       const query = {_id: new ObjectId(id)}
       const cursor = await articleCollection.find(query).toArray();
@@ -164,6 +163,18 @@ async function run() {
   const result = await articleCollection.updateOne(filter, updateDoc, option);
   res.send(result);
 })
+
+  app.get('/addviewcount', async(req,res)=>{
+    option = {upsert:true}
+    const updatedDoc = {
+      $set : {
+        viewCount : 0
+      }
+    }
+
+    const result = await articleCollection.updateMany({},updatedDoc);
+    res.send(result)
+  })
 
   app.post('/users', async(req,res)=>{
     const user = req.body;
