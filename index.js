@@ -109,7 +109,7 @@ async function run() {
       res.send(result);
       })
 
-    app.get('/articles/:id', async(req,res)=>{
+    app.get('/allarticles/articledetail/:id', async(req,res)=>{
       const id = req.params;
       const query = {_id: new ObjectId(id)}
       const cursor = await articleCollection.find(query).toArray();
@@ -202,14 +202,17 @@ app.get('/publishers', async(req,res)=>{
 //     res.send(cursor)
 // })
 
-//   app.get('/search/:hint', async(req, res)=>{
-//     const {hint} = req.params;
-//     const regex = new RegExp(`.*${hint}.*`,"i")
-//     const query = {sname: regex};
-//     const result = await serviceCollection.find(query).toArray();
-//     res.send(result);
+  app.get('/search', async(req, res)=>{
+    const hint = req?.query.hint;
+    const apublisher = req?.query.publisher;
+    const atags = [req?.query.tags];
+    const regex = new RegExp(`.*${hint}.*`,"i")
+    const query = {title: regex, tags: { $in: atags }, publisher: apublisher};
+    // const filter =
+    const result = await articleCollection.find(query).toArray();
+    res.send(result);
     
-//   })
+  })
 
  
     // Send a ping to confirm a successful connection
