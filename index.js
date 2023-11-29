@@ -141,7 +141,7 @@ async function run() {
       
       $set: {
         status: updatedDoc.status,
-        declineReason: updatedDoc?.declineReason //if declined
+        declineReason: updatedDoc?.declineReason 
       }
     }
 
