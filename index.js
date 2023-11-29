@@ -176,6 +176,21 @@ async function run() {
     res.send(result)
   })
 
+  app.patch('/updatecount/:id',async(req,res)=>{
+    const id = req.params;
+    const filter = {_id: new ObjectId(id)}
+    const updatedDoc = req.body;
+    option = { upsert: true }
+    const updateDoc ={
+      $set: {
+        viewCount: updatedDoc.viewCount,
+      }
+    }
+
+  const result = await articleCollection.updateOne(filter, updateDoc, option);
+  res.send(result);
+})
+
   app.post('/users', async(req,res)=>{
     const user = req.body;
     const query = { email: user?.email }
