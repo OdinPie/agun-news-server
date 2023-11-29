@@ -116,7 +116,7 @@ async function run() {
       res.send(cursor)
   })
 
-  app.patch('/articles/:id',async(req,res)=>{
+  app.patch('/approve/:id',async(req,res)=>{
       const id = req.params;
       const filter = {_id: new ObjectId(id)}
       const updatedDoc = req.body;
@@ -125,13 +125,45 @@ async function run() {
         
         $set: {
           status: updatedDoc.status,
-          declineReason: updatedDoc?.declineReason //if declined
         }
       }
 
     const result = await articleCollection.updateOne(filter, updateDoc, option);
     res.send(result);
   })
+
+  app.patch('/decline/:id',async(req,res)=>{
+    const id = req.params;
+    const filter = {_id: new ObjectId(id)}
+    const updatedDoc = req.body;
+    option = { upsert: true }
+    const updateDoc ={
+      
+      $set: {
+        status: updatedDoc.status,
+        declineReason: updatedDoc?.declineReason //if declined
+      }
+    }
+
+  const result = await articleCollection.updateOne(filter, updateDoc, option);
+  res.send(result);
+})
+
+  app.patch('/makepremium/:id',async(req,res)=>{
+    const id = req.params;
+    const filter = {_id: new ObjectId(id)}
+    const updatedDoc = req.body;
+    option = { upsert: true }
+    const updateDoc ={
+      
+      $set: {
+        isPremium: 'yes'
+      }
+    }
+
+  const result = await articleCollection.updateOne(filter, updateDoc, option);
+  res.send(result);
+})
 
   app.post('/users', async(req,res)=>{
     const user = req.body;
