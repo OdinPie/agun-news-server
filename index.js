@@ -96,6 +96,19 @@ async function run() {
         res.send(cursor);
     })
 
+    app.get('/allarticles', async(req,res)=>{
+      const page= req.query.page || 1;
+      const pageSize = 10;
+
+      const result = await articleCollection
+      .find({})
+      .skip((page-1)*pageSize)
+      .limit(pageSize)
+      .toArray();
+
+      res.send(result);
+      })
+
     app.get('/articles/:id', async(req,res)=>{
       const id = req.params;
       const query = {_id: new ObjectId(id)}
