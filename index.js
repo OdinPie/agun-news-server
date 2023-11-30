@@ -115,6 +115,18 @@ async function run() {
       res.send(cursor)
   })
 
+    app.get('/trending', async (req,res)=>{
+      
+        sort = {viewCount : -1}
+     
+      const result = await articleCollection
+      .find()
+      .sort(sort)
+      .limit(6)
+      .toArray();
+      res.send(result);
+    })
+
   app.patch('/approve/:id',async(req,res)=>{
       const id = req.params;
       const filter = {_id: new ObjectId(id)}
