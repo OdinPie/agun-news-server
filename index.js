@@ -188,6 +188,18 @@ async function run() {
     res.send(result)
   })
 
+  app.get('/addpremiumtaken', async(req,res)=>{
+    option = {upsert:true}
+    const updatedDoc = {
+      $set : {
+        premiumTaken : null
+      }
+    }
+
+    const result = await userCollection.updateMany({},updatedDoc);
+    res.send(result)
+  })
+
   app.patch('/updatecount/:id',async(req,res)=>{
     const id = req.params;
     const filter = {_id: new ObjectId(id)}
