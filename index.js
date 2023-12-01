@@ -279,6 +279,7 @@ app.get('/users', async(req,res)=>{
     res.send(cursor);
 })
 
+
 app.post('/publishers', async(req, res)=>{
     const publisher = req.body;
     const result = await publisherCollection.insertOne(publisher);
@@ -288,6 +289,20 @@ app.post('/publishers', async(req, res)=>{
 app.get('/publishers', async(req,res)=>{
     const cursor = await publisherCollection.find().toArray();
     res.send(cursor)
+})
+
+app.patch('/user/makeadmin/:id',async(req,res)=>{
+  const id = req.params;
+  const filter = {_id: new ObjectId(id)}
+
+  const updateDoc ={
+    $set: {
+      role:'admin'
+    }
+  }
+
+const result = await userCollection.updateOne(filter, updateDoc);
+res.send(result);
 })
 
  
