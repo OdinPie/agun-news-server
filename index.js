@@ -185,7 +185,7 @@ res.send(result);
   app.delete('/delete_article/:id',async(req,res)=>{
     const id = req.params;
     const filter = { _id : new ObjectId(id) };
-    const result = await articleCollection.deleteOne(filter);
+    const result = await articleCollection.deleteOne(filter); //deleted result
     res.send(result);
   })
 
