@@ -3,20 +3,20 @@ const app = express();
 const cors = require('cors');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY)
 require('dotenv').config();
-// const cookieParser = require('cookie-parser');
-// const jwt = require('jsonwebtoken');
+const cookieParser = require('cookie-parser');
+const jwt = require('jsonwebtoken');
 const port = process.env.PORT || 5000;
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 
-// app.use(cors({
-//   origin: ['http://localhost:5173','http://localhost:5174'],
-//   credentials: true
-// }));
+app.use(cors({
+  origin: ['http://localhost:5173','http://localhost:5174'],
+  credentials: true
+}));
 
-app.use(cors());
+// app.use(cors());
 app.use(express.json());
-// app.use(cookieParser());
+app.use(cookieParser());
 app.get('/', (req, res)=>{
     res.send('agun news is on fireee!!!🔥🔥🔥');
 })
@@ -36,24 +36,7 @@ const client = new MongoClient(uri, {
   }
 });
 
-// const verifyToken  = async(req,res,next) =>{
-//   const token = req?.cookies?.token;
-//   // console.log('middleware token: ',token);
-//     if(!token){
-//       console.log('token nai');
-//         return res.status(401).send({message: 'unauthorized access'})
-//     }
-//     jwt.verify(token, process.env.JWT_SECRET, function (err, decoded){
-//         if(err){
-//           console.log('ulta palta token');
-//         return res.status(401).send({message: 'unauthorized access'})
-//         }
-//         req.user = decoded;
-//          next();
-   
-//   })
 
-// }
 
 async function run() {
   try {
@@ -65,23 +48,54 @@ async function run() {
     const userCollection = database.collection('userCollection');
     const publisherCollection = database.collection('publisherCollection');
 
+    const verifyToken  = async(req,res,next) =>{
+      const token = req?.cookies?.token;
+      // console.log('middleware token: ',token);
+        if(!token){
+          // console.log('token nai');
+            return res.status(401).send({message: 'unauthorized access'})
+        }
+        jwt.verify(token, process.env.JWT_SECRET, function (err, decoded){
+            if(err){
+              // console.log('ulta palta token');
+            return res.status(401).send({message: 'unauthorized access'})
+            }
+            req.user = decoded;
+            // console.log('in token ver : ', req.user);
+             next();
+       
+      })
     
-    // app.post('/jwt', async(req,res)=>{
-    //   const user = req.body;
-    //   const token = jwt.sign({data: user},`${process.env.JWT_SECRET}`,{expiresIn: '1h'});
-    //   res.cookie('token', token, {
-    //     httpOnly: true,
-    //     secure: true,
-    //     sameSite: 'none'
-    //   })
-    //   .send({success: true})
-    // })
+    }
+    
+    const verifyAdmin = async(req,res,next) =>{
+      const email = req.user.data.email;
+      const query = {email : email};
+      // console.log(email);
+      const user = await userCollection.findOne(query);
+      const isAdmin = user?.role == 'admin' ;
+      if(!isAdmin){
+        return res.status(403).send({message: 'forbidden access!!'})
+      }
+      next();
+    }
 
-    // app.post('/logout', async(req, res)=>{
-    //   const user = req.body;
-    //   res.clearCookie('token', {maxAge: 0})
-    //   .send({success: true})
-    // })
+    app.post('/jwt', async(req,res)=>{
+      const user = req.body;
+      const token = jwt.sign({data: user},`${process.env.JWT_SECRET}`,{expiresIn: '1h'});
+      res.cookie('token', token, {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'none'
+      })
+      .send({success: true})
+    })
+
+    app.post('/logout', async(req, res)=>{
+      const user = req.body;
+      res.clearCookie('token', {maxAge: 0})
+      .send({success: true})
+    })
 
     app.post('/articles', async(req,res)=>{
         const article = req.body;
@@ -273,7 +287,7 @@ res.send(result);
     res.send(result);
 })
 
-app.get('/users', async(req,res)=>{
+app.get('/users',verifyToken, verifyAdmin, async(req,res)=>{
   const query = req.query;
     const cursor = await userCollection.find(query).toArray();
     res.send(cursor);
@@ -291,7 +305,7 @@ app.get('/publishers', async(req,res)=>{
     res.send(cursor)
 })
 
-app.patch('/user/makeadmin/:id',async(req,res)=>{
+app.patch('/user/makeadmin/:id', async(req,res)=>{
   const id = req.params;
   const filter = {_id: new ObjectId(id)}
 
@@ -305,22 +319,36 @@ const result = await userCollection.updateOne(filter, updateDoc);
 res.send(result);
 })
 
+//admin stats
+
+  app.get('/admin-stats', async (req,res)=>{
+    const khanFilter = {publisher : "Khan Brothers Publications"};
+    const binaryFilter = {publisher : "Binary Publications"};
+    const chronFilter = {publisher : "Chronicles Publications"};
+    const abcFilter = {publisher : "ABC Publications"};
+    const khan = await articleCollection.countDocuments(khanFilter);
+    const binary = await articleCollection.countDocuments(binaryFilter);
+    const chron = await articleCollection.countDocuments(chronFilter);
+    const abc = await articleCollection.countDocuments(abcFilter);
+    
+    res.send({khan, binary, chron, abc})
+  })
+
+  app.get('/user-count', async(req,res)=>{
+    const filter = { premiumTaken : 'yes' };
+    const premium = await userCollection.countDocuments(filter);
+    const total = await userCollection.countDocuments();
+    const normal = total-premium;
+    res.send({total,normal,premium})
+  })
+
  
-
-//   app.get('/bookings/:id', async(req,res)=>{
-//     const id = req.params;
-//     const query = {_id: new ObjectId(id)}
-//     const cursor = await bookingCollection.find(query).toArray();
-//     res.send(cursor)
-// })
-
   app.get('/search', async(req, res)=>{
     const hint = req?.query.hint;
     const apublisher = req?.query.publisher;
     const atags = [req?.query.tags];
     const regex = new RegExp(`.*${hint}.*`,"i")
     const query = {title: regex, tags: { $in: atags }, publisher: apublisher};
-    // const filter =
     const result = await articleCollection.find(query).toArray();
     res.send(result);
     
