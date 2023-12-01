@@ -26,7 +26,6 @@ app.listen(port, ()=>{
 
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@odinpiesdatabase.beom3yx.mongodb.net/?retryWrites=true&w=majority`;
-// const uri = `mongodb+srv://AgunAdmin:Zb1jIO2GPnvk1SQA@odinpiesdatabase.beom3yx.mongodb.net/?retryWrites=true&w=majority`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
@@ -161,6 +160,35 @@ async function run() {
   res.send(result);
 })
 
+app.patch('/updatearticle/:id',async(req,res)=>{
+  const id = req.params;
+  const filter = {_id: new ObjectId(id)}
+  const updatedDoc = req.body;
+  option = { upsert: true }
+  const updateDoc ={
+    
+    $set: {
+      title : updatedDoc.title,
+      articleCover : updatedDoc.articleCover,
+      publisher : updatedDoc.publisher,
+      detail : updatedDoc.detail,
+      tags : updatedDoc.tags,
+      status : updatedDoc.status,
+      updateDate : updatedDoc.updateDate
+    }
+  }
+
+const result = await articleCollection.updateOne(filter, updateDoc, option);
+res.send(result);
+})
+
+  app.delete('/delete_article/:id',async(req,res)=>{
+    const id = req.params;
+    const filter = { _id : new ObjectId(id) };
+    const result = await articleCollection.deleteOne(filter);
+    res.send(result);
+  })
+
   app.patch('/makepremium/:id',async(req,res)=>{
     const id = req.params;
     const filter = {_id: new ObjectId(id)}
@@ -216,6 +244,24 @@ async function run() {
   res.send(result);
 })
 
+app.patch('/updatepremiumuser',async(req,res)=>{
+  const email = req.query.email;
+  const filter = {email:email}
+  const updatedDoc = req.body;
+  option = { upsert: true }
+  const updateDoc ={
+    $set: {
+      premiumDuration : updatedDoc.premiumDuration,
+      premiumTaken : updatedDoc.premiumTaken,
+      takenDate : updatedDoc.takenDate,
+      expiredDate : updatedDoc.expiredDate,
+    }
+  }
+
+const result = await userCollection.updateOne(filter, updateDoc, option);
+res.send(result);
+})
+
   app.post('/users', async(req,res)=>{
     const user = req.body;
     const query = { email: user?.email }
@@ -264,6 +310,22 @@ app.get('/publishers', async(req,res)=>{
     res.send(result);
     
   })
+
+  // app.post('/create-payment-intent', async(req,res)=>{
+  //   const {price} = req.body;
+  //   const amount = parseInt(price * 100);
+
+  //   const paymentIntent = await stripe.paymentIntents.create({
+  //     amount : amount,
+  //     currency: "usd",
+  //     payment_method_types: ["card"],
+
+  //   });
+
+  //   res.send({
+  //     clientSecret: paymentIntent.client_secret
+  //   })
+  // })
 
  
     // Send a ping to confirm a successful connection
